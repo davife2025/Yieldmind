@@ -3,6 +3,7 @@ import "./globals.css"
 import { Providers } from "@/components/layout/Providers"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { TopBar } from "@/components/layout/TopBar"
+import { MobileNav } from "@/components/layout/MobileNav"
 
 export const metadata: Metadata = {
   title: { default: "YieldMind", template: "%s | YieldMind" },
@@ -17,39 +18,25 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-surface-base text-text-primary antialiased">
         <Providers>
           <div className="flex h-screen overflow-hidden">
-            {/* Sidebar */}
             <Sidebar />
-
-            {/* Main content */}
             <div className="flex flex-col flex-1 overflow-hidden">
               <TopBar />
-              <main className="flex-1 overflow-y-auto bg-surface-base">
-                {/* Background grid */}
-                <div
-                  className="fixed inset-0 bg-grid-pattern bg-grid opacity-100 pointer-events-none"
-                  aria-hidden="true"
-                />
-                {/* Hero gradient */}
-                <div
-                  className="fixed inset-0 bg-hero-gradient pointer-events-none"
-                  aria-hidden="true"
-                />
-                <div className="relative z-10 p-6">
+              <main className="flex-1 overflow-y-auto bg-surface-base pb-16 md:pb-0">
+                <div className="fixed inset-0 bg-grid-pattern bg-grid opacity-100 pointer-events-none" aria-hidden="true" />
+                <div className="fixed inset-0 bg-hero-gradient pointer-events-none" aria-hidden="true" />
+                <div className="relative z-10 p-4 md:p-6">
                   {children}
                 </div>
               </main>
             </div>
           </div>
+          <MobileNav />
         </Providers>
       </body>
     </html>
