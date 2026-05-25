@@ -1,0 +1,67 @@
+flowchart TD
+    subgraph UI["🖥️ Frontend — Next.js 14 App Router"]
+        Dashboard["Dashboard\n/dashboard"]
+        Positions["Positions\n/positions"]
+        AgentPage["AI Agent\n/agent"]
+        Alerts["Alerts\n/alerts"]
+    end
+
+    subgraph API["⚡ API Routes — Next.js"]
+        R1["/api/agent/run"]
+        R2["/api/agent/decisions"]
+        R3["/api/agent/mint"]
+        R4["/api/agent/rebalance"]
+        R5["/api/positions"]
+        R6["/api/yield"]
+        R7["/api/alerts"]
+    end
+
+    subgraph Agent["🧠 AI Agent — @yieldmind/agent"]
+        YieldScanner["Yield Scanner\nyieldScanner.ts"]
+        RiskEngine["Risk Engine\nriskEngine.ts"]
+        Claude["Claude Reasoning\nreasoningEngine.ts"]
+        DecisionWriter["Decision Writer\ndecisionWriter.ts"]
+        MantleWriter["Mantle Writer\nmantleWriter.ts"]
+    end
+
+    subgraph DB["🗄️ Supabase Postgres"]
+        Agents[("agents")]
+        Positions2[("positions")]
+        Decisions[("agent_decisions")]
+        Yields[("yield_snapshots")]
+        RiskAlerts[("risk_alerts")]
+        Realtime["Realtime\nWebSocket"]
+    end
+
+    subgraph Chain["⛓️ Mantle Network"]
+        AgentNFT["AgentIdentity.sol\nERC-8004 NFT"]
+        Ledger["DecisionLedger.sol\nImmutable Log"]
+    end
+
+    subgraph External["🌐 External APIs"]
+        Bybit["Bybit REST API\nPrice Feeds"]
+        Anthropic["Anthropic API\nClaude Sonnet 4"]
+    end
+
+    Dashboard -->|"React Query"| R5
+    Dashboard -->|"React Query"| R6
+    Dashboard -->|"Supabase Realtime"| Realtime
+    AgentPage -->|"React Query"| R2
+    Alerts -->|"React Query"| R7
+
+    R1 --> Agent
+    R3 --> MantleWriter
+    R4 --> DecisionWriter
+    R4 --> MantleWriter
+
+    YieldScanner -->|"price feeds"| Bybit
+    YieldScanner -->|"snapshots"| Yields
+    RiskEngine -->|"read positions"| Positions2
+    RiskEngine -->|"write alerts"| RiskAlerts
+    Claude -->|"reasoning"| Anthropic
+    DecisionWriter -->|"write decisions"| Decisions
+    MantleWriter -->|"mint NFT"| AgentNFT
+    MantleWriter -->|"log decision"| Ledger
+
+    Realtime -->|"INSERT events"| Dashboard
+    Realtime -->|"INSERT events"| Alerts

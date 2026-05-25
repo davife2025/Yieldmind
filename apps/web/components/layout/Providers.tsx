@@ -3,7 +3,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { WagmiProvider, createConfig, http } from "wagmi"
 import { defineChain } from "viem"
+import { injected } from "wagmi/connectors"
 import { useState } from "react"
+import { OnboardingGate } from "@/components/onboarding/OnboardingGate"
 
 const mantleTestnet = defineChain({
   id: 5003,
@@ -20,26 +22,25 @@ const mantleTestnet = defineChain({
 
 const wagmiConfig = createConfig({
   chains: [mantleTestnet],
+  connectors: [injected()],
   transports: { [mantleTestnet.id]: http() },
 })
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 30_000,
-            refetchOnWindowFocus: false,
-          },
-        },
-      })
+    () => new QueryClient({
+      defaultOptions: {
+        queries: { staleTime: 30_000, refetchOnWindowFocus: false },
+      },
+    })
   )
 
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        {children}
+        <OnboardingGate>
+          {children}
+        </OnboardingGate>
       </QueryClientProvider>
     </WagmiProvider>
   )

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "cd ../.. && pnpm build --filter=@yieldmind/web",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "pnpm install",
+  "regions": ["sin1"],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL":        { "value": "@yieldmind_supabase_url"        },
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY":   { "value": "@yieldmind_supabase_anon_key"   },
+    "SUPABASE_SERVICE_ROLE_KEY":       { "value": "@yieldmind_supabase_service_key" },
+    "NEXT_PUBLIC_MANTLE_RPC_URL":      { "value": "@yieldmind_mantle_rpc_url"      },
+    "NEXT_PUBLIC_CHAIN_ID":            { "value": "@yieldmind_chain_id"            },
+    "BYBIT_API_KEY":                   { "value": "@yieldmind_bybit_api_key"       },
+    "BYBIT_API_SECRET":                { "value": "@yieldmind_bybit_api_secret"    },
+    "ANTHROPIC_API_KEY":               { "value": "@yieldmind_anthropic_api_key"   },
+    "AGENT_IDENTITY_CONTRACT_ADDRESS": { "value": "@yieldmind_agent_identity_addr" },
+    "DECISION_LEDGER_CONTRACT_ADDRESS":{ "value": "@yieldmind_decision_ledger_addr"}
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/", "destination": "/dashboard" }
+  ]
+}
