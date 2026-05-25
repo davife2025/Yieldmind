@@ -1,0 +1,26 @@
+{
+  "name": "@yieldmind/agent",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yieldmind/db": "workspace:*",
+    "@yieldmind/shared": "workspace:*",
+    "@anthropic-ai/sdk": "^0.24.0",
+    "axios": "^1.7.2",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^20.14.2",
+    "tsx": "^4.15.5",
+    "typescript": "^5.4.5"
+  }
+}
