@@ -10,10 +10,10 @@ import { BarChart2 } from "lucide-react"
 import { usePositions } from "@/hooks/usePositions"
 
 const MOCK = [
-  { asset_id: "USDe", apy: 8.94 },
-  { asset_id: "USDY", apy: 5.23 },
-  { asset_id: "mETH", apy: 4.81 },
-  { asset_id: "fBTC", apy: 3.12 },
+  { asset_id: "USDe", apy: 8.94, allocation_pct: 18.79, value_usd: 89200,  target_allocation_pct: 18, balance: 89200,  trend: -0.07 },
+  { asset_id: "USDY", apy: 5.23, allocation_pct: 26.22, value_usd: 124500, target_allocation_pct: 25, balance: 124500, trend: +0.04 },
+  { asset_id: "mETH", apy: 4.81, allocation_pct: 31.30, value_usd: 148630, target_allocation_pct: 32, balance: 42.18,  trend: +0.11 },
+  { asset_id: "fBTC", apy: 3.12, allocation_pct: 23.69, value_usd: 112480, target_allocation_pct: 25, balance: 1.84,   trend: +0.22 },
 ]
 
 const CustomTooltip = ({ active, payload }: any) => {

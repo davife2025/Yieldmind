@@ -2,30 +2,20 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  LayoutDashboard,
-  BrainCircuit,
-  BarChart3,
-  ShieldAlert,
-  Wallet,
-  Settings,
-  Zap,
-} from "lucide-react"
+import { LayoutDashboard, BrainCircuit, BarChart3, ShieldAlert, Wallet, Settings, Zap } from "lucide-react"
 import { clsx } from "clsx"
+import { useRealtimeAlerts } from "@/hooks/useRealtimeAlerts"
 
 const NAV_ITEMS = [
-  { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/agent",      label: "AI Agent",   icon: BrainCircuit },
-  { href: "/positions",  label: "Positions",  icon: BarChart3 },
-  { href: "/alerts",     label: "Alerts",     icon: ShieldAlert },
-]
-
-const BOTTOM_ITEMS = [
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/agent",     label: "AI Agent",  icon: BrainCircuit    },
+  { href: "/positions", label: "Positions", icon: BarChart3        },
+  { href: "/alerts",    label: "Alerts",    icon: ShieldAlert      },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { activeAlerts } = useRealtimeAlerts()
 
   return (
     <aside className="hidden md:flex flex-col w-60 bg-surface-raised border-r border-surface-border shrink-0">
@@ -49,6 +39,7 @@ export function Sidebar() {
         <p className="stat-label px-2 mb-3">Navigation</p>
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
+          const alertCount = label === "Alerts" ? activeAlerts.length : 0
           return (
             <Link
               key={href}
@@ -62,9 +53,9 @@ export function Sidebar() {
             >
               <Icon className="w-4 h-4 shrink-0" />
               {label}
-              {label === "Alerts" && (
-                <span className="ml-auto bg-danger text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  1
+              {alertCount > 0 && (
+                <span className="ml-auto bg-danger text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                  {alertCount > 9 ? "9+" : alertCount}
                 </span>
               )}
             </Link>
@@ -74,21 +65,23 @@ export function Sidebar() {
 
       {/* Bottom */}
       <div className="px-3 pb-4 border-t border-surface-border pt-3 space-y-0.5">
-        {BOTTOM_ITEMS.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-muted hover:text-text-primary transition-all"
-          >
-            <Icon className="w-4 h-4 shrink-0" />
-            {label}
-          </Link>
-        ))}
+        <Link
+          href="/settings"
+          className={clsx(
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+            pathname === "/settings"
+              ? "bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/20"
+              : "text-text-secondary hover:bg-surface-muted hover:text-text-primary"
+          )}
+        >
+          <Settings className="w-4 h-4 shrink-0" />
+          Settings
+        </Link>
 
-        {/* Agent identity mini-card */}
+        {/* Agent mini-card */}
         <div className="mt-3 p-3 rounded-xl bg-surface-muted border border-surface-border">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-cyan to-brand-purple flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-cyan to-brand-purple flex items-center justify-center shrink-0">
               <BrainCircuit className="w-3 h-3 text-white" />
             </div>
             <div className="flex-1 min-w-0">

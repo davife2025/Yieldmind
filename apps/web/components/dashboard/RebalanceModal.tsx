@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ArrowRight, ArrowRightLeft, X, CheckCircle, AlertTriangle, Loader2 } from "lucide-react"
-import { formatUSD, formatPct, getMantleExplorerUrl } from "@yieldmind/shared"
+import { formatUSD, getMantleExplorerUrl } from "@yieldmind/shared"
 import { ASSETS } from "@yieldmind/shared"
 import { Badge, AssetChip } from "@/components/ui"
 import { clsx } from "clsx"

@@ -165,6 +165,10 @@ async function startAgentLoop() {
   }, POLL_INTERVAL_MS)
 }
 
-startAgentLoop()
+// Only start the polling loop when executed directly (tsx src/index.ts)
+// NOT when imported by Next.js API routes — that would start infinite loops in serverless
+if (require.main === module) {
+  startAgentLoop()
+}
 
 export { runAgent }

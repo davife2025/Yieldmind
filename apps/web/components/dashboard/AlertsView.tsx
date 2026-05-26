@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { ShieldAlert, ShieldCheck, ShieldX, Filter, X, ExternalLink } from "lucide-react"
+import { ShieldAlert, ShieldCheck, ShieldX, X } from "lucide-react"
 import { Card, SectionHeader, Badge, EmptyState, LiveIndicator } from "@/components/ui"
-import { formatTimeAgo, getMantleExplorerUrl } from "@yieldmind/shared"
+import { formatTimeAgo } from "@yieldmind/shared"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { clsx } from "clsx"
 

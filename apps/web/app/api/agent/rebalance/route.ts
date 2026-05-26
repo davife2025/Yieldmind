@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@yieldmind/db"
 
-// POST /api/agent/rebalance
-// Executes a rebalance: logs decision to Supabase + records on Mantle
 export async function POST(req: NextRequest) {
   try {
     const { fromAsset, toAsset, amountUsd, reasoning, agentId } = await req.json()
@@ -13,14 +11,14 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServerClient()
 
-    // 1. Write decision to Supabase first (optimistic)
+    // Write decision to Supabase (optimistic)
     const { data: decision, error: decisionError } = await supabase
       .from("agent_decisions")
       .insert({
         agent_id: agentId,
         type: "REBALANCE",
-        reasoning: reasoning ?? `AI-initiated rebalance: ${fromAsset} → ${toAsset} for $${amountUsd.toLocaleString()}`,
-        action_taken: `Shifted ${formatUSD(amountUsd)} ${fromAsset} → ${toAsset}`,
+        reasoning: reasoning ?? `Rebalance: ${fromAsset} → ${toAsset} for $${Number(amountUsd).toLocaleString()}`,
+        action_taken: `Shifted $${Number(amountUsd).toLocaleString()} ${fromAsset} → ${toAsset}`,
         status: "pending",
         asset_id: fromAsset,
       })
@@ -29,13 +27,12 @@ export async function POST(req: NextRequest) {
 
     if (decisionError) throw decisionError
 
-    // 2. Attempt on-chain log via Mantle writer (non-blocking if contract not deployed)
+    // Attempt on-chain log — best-effort
     let txHash: string | null = null
     try {
       const { getMantleWriter } = await import("@yieldmind/agent/src/mantle/mantleWriter")
       const writer = getMantleWriter()
 
-      // Get agent's NFT token ID
       const { data: agent } = await supabase
         .from("agents")
         .select("wallet_address, nft_token_id")
@@ -44,25 +41,16 @@ export async function POST(req: NextRequest) {
 
       if (agent?.nft_token_id && agent?.wallet_address) {
         txHash = await writer.logDecision(
-          {
-            agentId,
-            type: "REBALANCE",
-            reasoning: reasoning ?? `Rebalance: ${fromAsset} → ${toAsset}`,
-            assetId: fromAsset,
-            status: "confirmed",
-            valueDeltaUsd: 0,
-            apyDelta: 0,
-          },
+          { agentId, type: "REBALANCE", reasoning: reasoning ?? "", assetId: fromAsset, status: "confirmed" },
           agent.nft_token_id,
           agent.wallet_address
         )
       }
-    } catch (chainErr) {
-      // On-chain logging is best-effort — don't fail the whole request
-      console.warn("[Rebalance] On-chain log skipped:", chainErr)
+    } catch (chainErr: any) {
+      console.warn("[rebalance] On-chain log skipped:", chainErr.message)
     }
 
-    // 3. Update decision with tx hash + confirmed status
+    // Confirm decision
     await supabase
       .from("agent_decisions")
       .update({ status: "confirmed", tx_hash: txHash })
@@ -72,16 +60,10 @@ export async function POST(req: NextRequest) {
       success: true,
       decisionId: decision.id,
       txHash,
-      explorerUrl: txHash
-        ? `https://explorer.testnet.mantle.xyz/tx/${txHash}`
-        : null,
+      explorerUrl: txHash ? `https://explorer.testnet.mantle.xyz/tx/${txHash}` : null,
     })
   } catch (err: any) {
-    console.error("[/api/agent/rebalance] Error:", err)
+    console.error("[/api/agent/rebalance]", err)
     return NextResponse.json({ success: false, error: err.message }, { status: 500 })
   }
-}
-
-function formatUSD(v: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(v)
 }
