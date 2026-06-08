@@ -13,7 +13,7 @@
     "NEXT_PUBLIC_CHAIN_ID":            { "value": "@yieldmind_chain_id"            },
     "BYBIT_API_KEY":                   { "value": "@yieldmind_bybit_api_key"       },
     "BYBIT_API_SECRET":                { "value": "@yieldmind_bybit_api_secret"    },
-    "ANTHROPIC_API_KEY":               { "value": "@yieldmind_anthropic_api_key"   },
+    "HUGGINGFACE_TOKEN":               { "value": "@yieldmind_huggingface_token"    },
     "AGENT_IDENTITY_CONTRACT_ADDRESS": { "value": "@yieldmind_agent_identity_addr" },
     "DECISION_LEDGER_CONTRACT_ADDRESS":{ "value": "@yieldmind_decision_ledger_addr"}
   },

@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       const result = await writer.mintAgentIdentity(walletAddress, agentName)
       tokenId = result.tokenId
       txHash = result.txHash
-    } catch (chainErr: any) {
+    } catch (chainErr: unknown) {
       console.warn("[mint] On-chain mint skipped (contracts not deployed?):", chainErr.message)
       // Assign a sequential token ID from DB as fallback
       const { count } = await supabase.from("agents").select("*", { count: "exact", head: true })
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       txHash,
       explorerUrl: txHash ? `https://explorer.testnet.mantle.xyz/tx/${txHash}` : null,
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[/api/agent/mint]", err)
     return NextResponse.json({ success: false, error: err.message }, { status: 500 })
   }

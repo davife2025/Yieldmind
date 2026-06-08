@@ -5,6 +5,7 @@ import { BrainCircuit, ExternalLink, ArrowRightLeft, TrendingUp, ShieldAlert, In
 import { formatTimeAgo, formatTxHash, getMantleExplorerUrl } from "@yieldmind/shared"
 import { Card, SectionHeader, Badge, LiveIndicator, EmptyState } from "@/components/ui"
 import { useRealtimeDecisions } from "@/hooks/useRealtimeDecisions"
+import { useAgentDecisions } from "@/hooks/useAgentDecisions"
 import { clsx } from "clsx"
 
 const TYPE_CONFIG = {
@@ -22,7 +23,7 @@ const MOCK_DECISIONS = [
   { id: "4", type: "REBALANCE", reasoning: "Minor portfolio drift correction after USDe reduction. fBTC underweight by 1.31% vs target. Allocating recovered capital to fBTC to maintain diversification targets.", action_taken: "Shifted $6,200 into fBTC", tx_hash: "0x9c8b2d5e1a4f7c0b3e6a9d2c5f8b1e4a7d0c3f6b9e2a5d8c1f4b7e0a3d6c9f2b5", status: "confirmed", asset_id: "fBTC", value_delta_usd: 190, apy_delta: 0.09, created_at: new Date(Date.now() - 126 * 60 * 1000).toISOString() },
 ]
 
-function DecisionCard({ decision, isNew }: { decision: any; isNew?: boolean }) {
+function DecisionCard({ decision: AgentDecision | typeof MOCK_DECISIONS[number]; isNew?: boolean }) {
   const [expanded, setExpanded] = useState(false)
   const cfg = TYPE_CONFIG[decision.type as keyof typeof TYPE_CONFIG] ?? TYPE_CONFIG.INFO
   const Icon = cfg.icon
@@ -97,7 +98,10 @@ function DecisionCard({ decision, isNew }: { decision: any; isNew?: boolean }) {
 
 export function AgentFeed({ expanded = false }: { expanded?: boolean }) {
   const { decisions: live, connected } = useRealtimeDecisions({ limit: expanded ? 50 : 10 })
-  const decisions = live.length > 0 ? live : MOCK_DECISIONS
+  // Polling fallback — used when realtime hasn't delivered data yet (e.g. first load)
+  const { data: polled = [] } = useAgentDecisions(expanded ? 50 : 10)
+  // Prefer realtime if it has data, otherwise use polled (React Query) data, then mock
+  const decisions = live.length > 0 ? live : polled.length > 0 ? polled : MOCK_DECISIONS
   const display = expanded ? decisions : decisions.slice(0, 4)
   const newestId = decisions[0]?.id
 
@@ -118,7 +122,7 @@ export function AgentFeed({ expanded = false }: { expanded?: boolean }) {
         <EmptyState icon={<BrainCircuit className="w-6 h-6 text-text-muted" />} title="No decisions yet" description="Run the agent to see AI-powered decisions appear here in real time." />
       ) : (
         <div className="space-y-3">
-          {(display as any[]).map((d, i) => (
+          {display.map((d, i) => (
             <DecisionCard key={d.id} decision={d} isNew={i === 0 && d.id === newestId && connected} />
           ))}
         </div>

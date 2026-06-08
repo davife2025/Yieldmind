@@ -9,7 +9,7 @@
 - [ ] App running at localhost:3000 (or live Vercel URL)
 - [ ] Supabase seed data confirmed (`supabase studio` → check agents table)
 - [ ] Mantle testnet wallet funded with MNT
-- [ ] `.env.local` has all keys (Anthropic, Bybit, Supabase)
+- [ ] `.env.local` has all keys (HuggingFace token, Bybit, Supabase)
 - [ ] Browser: Chrome, wallet extension connected
 - [ ] Screen: 1920×1080, zoom 90%, dark mode
 
@@ -18,7 +18,7 @@
 ## THE PITCH LINE (say this first — 15 seconds)
 
 > "YieldMind is an autonomous AI agent that manages a real-world asset portfolio on Mantle.
-> Every yield opportunity, every risk signal, every rebalance decision — reasoned by Claude,
+> Every yield opportunity, every risk signal, every rebalance decision — reasoned by Kimi K2,
 > recorded on-chain, verifiable by anyone. We're not just building a dashboard.
 > We're building the first AI agent with a permanent reputation on Mantle."
 
@@ -71,7 +71,7 @@
 
 **Say:**
 > "This is what separates YieldMind from every other yield optimizer.
-> Every single decision the agent makes is here — with full Claude AI reasoning."
+> Every single decision the agent makes is here — with full Kimi K2 AI reasoning."
 
 **Click to expand** the first REBALANCE decision card
 
@@ -98,7 +98,7 @@
 **Show the MED badge, the message, the timestamp**
 
 > "This isn't manual. The agent detected the funding rate via Bybit API,
-> passed it to Claude for reasoning, wrote the decision, and stored the alert —
+> passed it to Kimi K2 for reasoning, wrote the decision, and stored the alert —
 > all without human intervention."
 
 **Click Run Agent Now** (in AgentControls)
@@ -143,7 +143,7 @@
 > It's not just code running. It's an agent with history.
 >
 > Three — full AI transparency. Every rebalance, every risk action — you can
-> read the Claude reasoning, verify the Mantle transaction, and audit the outcome.
+> read the Kimi K2 reasoning, verify the Mantle transaction, and audit the outcome.
 >
 > YieldMind isn't a prototype. It's infrastructure for how autonomous AI agents
 > manage real-world assets in Web3."
@@ -154,12 +154,12 @@
 
 **"How is this different from a regular yield aggregator?"**
 > "A yield aggregator executes rules. YieldMind reasons. Every decision goes through
-> Claude — it gets the portfolio state, the risk signal, and generates a natural-language
+> Kimi K2 — it gets the portfolio state, the risk signal, and generates a natural-language
 > justification before acting. The reasoning is stored. The action is verifiable."
 
 **"Is the AI actually making decisions or is it just a wrapper?"**
-> "The agent calls Claude with full portfolio context — balances, APYs, drift percentages,
-> funding rates. Claude returns structured JSON with reasoning, action, and expected impact.
+> "The agent calls Kimi K2 (moonshotai/Kimi-K2-Instruct via HuggingFace) with full portfolio context — balances, APYs, drift percentages,
+> funding rates. Kimi K2 returns structured JSON with reasoning, action, and expected impact.
 > We don't prompt-engineer around the outcome. The agent can recommend no action,
 > and often does."
 
@@ -173,7 +173,7 @@
 > "The agent is risk-conservative by design. It prefers stability over yield,
 > won't rebalance into high-risk assets above 25% allocation, and backs off
 > USDe exposure the moment funding rates spike. Downside protection is a
-> first-class constraint in the Claude system prompt."
+> first-class constraint in the Kimi K2 system prompt."
 
 **"Why Mantle?"**
 > "Mantle is the only L2 with USDY and mETH natively — we're not bridging assets,
@@ -187,7 +187,7 @@
 
 1. **Supabase down:** Mock data is always shown as fallback — dashboard still renders fully
 2. **Contract not deployed:** All UI still works — on-chain logging degrades gracefully to Supabase-only
-3. **Anthropic API down:** Agent falls back to rule-based reasoning strings — decisions still written
+3. **HuggingFace/Kimi K2 unavailable:** Agent falls back to rule-based reasoning strings — decisions still written
 4. **Wallet won't connect:** Show the demo wallet (0xDemo...0001) pre-loaded in Supabase seed
 
 ---

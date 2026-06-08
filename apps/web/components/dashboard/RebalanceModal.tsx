@@ -43,12 +43,55 @@ export function RebalanceModal({ suggestion = MOCK_SUGGESTION, onClose }: Rebala
   const handleApprove = async () => {
     setStatus("approving")
     try {
-      // In production: call /api/agent/rebalance which executes on Mantle
-      await new Promise((r) => setTimeout(r, 2000))
-      setTxHash("0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(""))
+      // 1. Get agent ID from profile
+      const profileRes = await fetch("/api/agent/profile")
+      const profile    = await profileRes.json()
+      if (!profileRes.ok) throw new Error(profile.error ?? "Could not fetch agent profile")
+
+      // 2. Execute rebalance — logs decision to Supabase + Mantle
+      const rebalanceRes = await fetch("/api/agent/rebalance", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId:   profile.id,
+          fromAsset: suggestion.fromAsset,
+          toAsset:   suggestion.toAsset,
+          amountUsd: suggestion.amountUsd,
+          reasoning: suggestion.reasoning,
+        }),
+      })
+      const rebalance = await rebalanceRes.json()
+      if (!rebalanceRes.ok) throw new Error(rebalance.error ?? "Rebalance failed")
+
+      // 3. Update position balances in DB
+      // Use $1 = from price for stablecoins, fetch from Bybit for others
+      const pricesRes = await fetch("/api/bybit/prices")
+      const prices    = pricesRes.ok ? await pricesRes.json() : { ETH: { price: 3524 }, BTC: { price: 61130 } }
+
+      const priceMap: Record<string, number> = {
+        USDY: 1.0,
+        USDe: 1.0,
+        mETH: prices.ETH?.price ?? 3524,
+        fBTC: prices.BTC?.price ?? 61130,
+      }
+
+      await fetch("/api/positions/update", {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId:   profile.id,
+          fromAsset: suggestion.fromAsset,
+          toAsset:   suggestion.toAsset,
+          amountUsd: suggestion.amountUsd,
+          fromPrice: priceMap[suggestion.fromAsset] ?? 1,
+          toPrice:   priceMap[suggestion.toAsset]   ?? 1,
+        }),
+      })
+
+      setTxHash(rebalance.txHash ?? null)
       setStatus("success")
-    } catch (err: any) {
-      setError(err.message ?? "Rebalance failed")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err) ?? "Rebalance failed")
       setStatus("error")
     }
   }
@@ -131,20 +174,26 @@ export function RebalanceModal({ suggestion = MOCK_SUGGESTION, onClose }: Rebala
           </div>
 
           {/* Success state */}
-          {status === "success" && txHash && (
+          {status === "success" && (
             <div className="p-3 rounded-xl bg-success/5 border border-success/20">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle className="w-4 h-4 text-success" />
                 <span className="text-sm font-semibold text-success">Rebalance Executed</span>
               </div>
-              <a
-                href={getMantleExplorerUrl(txHash)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-brand-cyan hover:underline font-mono"
-              >
-                {txHash.slice(0, 20)}...{txHash.slice(-6)} ↗
-              </a>
+              {txHash ? (
+                <a
+                  href={getMantleExplorerUrl(txHash)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-brand-cyan hover:underline font-mono"
+                >
+                  {txHash.slice(0, 20)}...{txHash.slice(-6)} ↗
+                </a>
+              ) : (
+                <p className="text-xs text-text-secondary">
+                  Logged to Supabase · Deploy contracts to enable on-chain proof
+                </p>
+              )}
             </div>
           )}
 

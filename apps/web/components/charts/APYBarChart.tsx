@@ -1,3 +1,4 @@
+import type { RechartsTooltipProps, TooltipPayloadEntry } from "@/components/charts/tooltipTypes"
 "use client"
 
 import {
@@ -16,7 +17,7 @@ const MOCK = [
   { asset_id: "fBTC", apy: 3.12, allocation_pct: 23.69, value_usd: 112480, target_allocation_pct: 25, balance: 1.84,   trend: +0.22 },
 ]
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: RechartsTooltipProps) => {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   const asset = ASSETS[d.asset_id as keyof typeof ASSETS]

@@ -1,41 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import { BrainCircuit, ExternalLink, Award, Zap, Loader2, CheckCircle } from "lucide-react"
+import { BrainCircuit, ExternalLink, Award, Zap, Loader2, CheckCircle, Star } from "lucide-react"
 import { formatAddress, formatUSD, formatAPY } from "@yieldmind/shared"
-import { Card, SectionHeader, Badge } from "@/components/ui"
+import { Card, Badge, Skeleton } from "@/components/ui"
 import { useWallet } from "@/hooks/useWallet"
-import { useQuery } from "@tanstack/react-query"
-
-async function fetchAgentProfile() {
-  const res = await fetch("/api/positions")
-  if (!res.ok) throw new Error("Failed to fetch agent")
-  return res.json()
-}
-
-const MOCK_AGENT = {
-  name: "YieldMind Agent #1",
-  wallet_address: "0xDemoWallet0000000000000000000000000001",
-  nft_token_id: null as string | null,
-  total_value_usd: 474810,
-  weighted_apy: 5.52,
-  decisions_count: 24,
-}
+import { useAgentProfile } from "@/hooks/useAgentProfile"
+import { useQueryClient } from "@tanstack/react-query"
 
 type MintStatus = "idle" | "minting" | "success" | "error"
 
 export function AgentIdentityCard() {
-  const { address, isConnected } = useWallet()
-  const [mintStatus, setMintStatus] = useState<MintStatus>("idle")
-  const [mintedTokenId, setMintedTokenId] = useState<string | null>(null)
-  const [mintTxHash, setMintTxHash] = useState<string | null>(null)
-  const [mintError, setMintError] = useState<string | null>(null)
-
-  const { data } = useQuery({ queryKey: ["portfolio-stats"], queryFn: fetchAgentProfile })
-  const agent = { ...MOCK_AGENT, ...(data ?? {}) }
-
-  const nftTokenId = mintedTokenId ?? agent.nft_token_id
-  const minted = !!nftTokenId
+  const { address, isConnected }        = useWallet()
+  const { data: profile, isLoading }    = useAgentProfile()
+  const queryClient                     = useQueryClient()
+  const [mintStatus, setMintStatus]     = useState<MintStatus>("idle")
+  const [mintTxHash, setMintTxHash]     = useState<string | null>(null)
+  const [mintError, setMintError]       = useState<string | null>(null)
 
   const handleMint = async () => {
     if (!isConnected || !address) {
@@ -45,28 +26,39 @@ export function AgentIdentityCard() {
     setMintStatus("minting")
     setMintError(null)
     try {
-      const res = await fetch("/api/agent/mint", {
-        method: "POST",
+      const res  = await fetch("/api/agent/mint", {
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body:    JSON.stringify({
           walletAddress: address,
-          agentName: `YieldMind Agent — ${formatAddress(address)}`,
+          agentName:     `YieldMind Agent — ${formatAddress(address)}`,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? "Mint failed")
-      setMintedTokenId(data.tokenId)
       setMintTxHash(data.txHash)
       setMintStatus("success")
-    } catch (err: any) {
-      setMintError(err.message)
+      // Refresh profile to show new token ID
+      queryClient.invalidateQueries({ queryKey: ["agent-profile"] })
+    } catch (err: unknown) {
+      setMintError(err instanceof Error ? err.message : String(err))
       setMintStatus("error")
     }
   }
 
+  const minted     = profile?.minted || mintStatus === "success"
+  const tokenId    = profile?.nftTokenId
+  const reputation = profile?.reputationScore ?? 100
+
+  // Reputation tier
+  const repTier =
+    reputation >= 800 ? { label: "Elite",    color: "text-brand-gold",   bg: "bg-brand-gold/10"   } :
+    reputation >= 500 ? { label: "Trusted",  color: "text-brand-cyan",   bg: "bg-brand-cyan/10"   } :
+    reputation >= 200 ? { label: "Active",   color: "text-brand-purple", bg: "bg-brand-purple/10" } :
+                        { label: "New",      color: "text-text-muted",   bg: "bg-surface-muted"   }
+
   return (
     <Card className="relative overflow-hidden">
-      {/* Background glow */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-cyan/5 to-brand-purple/5 pointer-events-none" />
 
       <div className="relative">
@@ -76,9 +68,12 @@ export function AgentIdentityCard() {
             <BrainCircuit className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-bold text-text-primary truncate">{agent.name}</h2>
+            {isLoading
+              ? <Skeleton className="h-5 w-36 mb-1" />
+              : <h2 className="text-base font-bold text-text-primary truncate">{profile?.name ?? "YieldMind Agent"}</h2>
+            }
             <p className="text-xs text-text-muted font-mono">
-              {isConnected && address ? formatAddress(address) : formatAddress(agent.wallet_address)}
+              {isConnected && address ? formatAddress(address) : "0xDemo...0001"}
             </p>
           </div>
           {minted && <Badge variant="low" dot>Active</Badge>}
@@ -94,25 +89,30 @@ export function AgentIdentityCard() {
             <Award className={`w-4 h-4 shrink-0 ${minted ? "text-success" : "text-text-muted"}`} />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-text-primary">
-                {minted ? `ERC-8004 NFT · Token #${nftTokenId}` : "ERC-8004 Identity NFT"}
+                {minted
+                  ? `ERC-8004 NFT · Token #${tokenId}`
+                  : "ERC-8004 Identity NFT"}
               </p>
               <p className="text-[11px] text-text-muted mt-0.5">
-                {minted ? "On-chain identity active on Mantle" : "Soul-bound identity · Not yet minted"}
+                {minted
+                  ? "Soul-bound · On-chain identity active on Mantle"
+                  : "Not yet minted · Required for on-chain reputation"}
               </p>
             </div>
-            {minted && mintTxHash && (
+            {minted && (mintTxHash || tokenId) && (
               <a
-                href={`https://explorer.testnet.mantle.xyz/tx/${mintTxHash}`}
+                href={mintTxHash
+                  ? `https://explorer.testnet.mantle.xyz/tx/${mintTxHash}`
+                  : `https://explorer.testnet.mantle.xyz`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-success hover:text-success/80 shrink-0"
+                className="text-success hover:text-success/80 shrink-0 transition-colors"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
           </div>
 
-          {/* Mint button — only shows if not minted */}
           {!minted && (
             <div className="mt-3 space-y-2">
               <button
@@ -135,27 +135,78 @@ export function AgentIdentityCard() {
           )}
         </div>
 
+        {/* Reputation bar */}
+        {minted && (
+          <div className="mb-4 p-3 rounded-xl bg-surface-muted border border-surface-border">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <Star className={`w-3.5 h-3.5 ${repTier.color}`} />
+                <span className="text-xs font-semibold text-text-primary">Reputation</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-bold ${repTier.color}`}>{reputation}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${repTier.bg} ${repTier.color}`}>
+                  {repTier.label}
+                </span>
+              </div>
+            </div>
+            <div className="h-1.5 bg-surface-border rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-brand-cyan to-brand-purple transition-all duration-500"
+                style={{ width: `${Math.min(reputation / 10, 100)}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-text-muted mt-1.5 text-right">{reputation} / 1000</p>
+          </div>
+        )}
+
         {/* Stats grid */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="text-center p-3 rounded-xl bg-surface-muted">
-            <p className="stat-label text-[10px]">Value</p>
-            <p className="text-sm font-bold text-text-primary mt-1 tabular-nums">
-              {formatUSD(agent.total_value_usd, true)}
-            </p>
-          </div>
-          <div className="text-center p-3 rounded-xl bg-surface-muted">
-            <p className="stat-label text-[10px]">APY</p>
-            <p className="text-sm font-bold text-brand-cyan mt-1 tabular-nums">
-              {formatAPY(agent.weighted_apy)}
-            </p>
-          </div>
-          <div className="text-center p-3 rounded-xl bg-surface-muted">
-            <p className="stat-label text-[10px]">Decisions</p>
-            <p className="text-sm font-bold text-brand-purple mt-1">
-              {agent.decisions_count ?? 0}
-            </p>
-          </div>
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 rounded-xl" />
+            ))
+          ) : (
+            <>
+              <div className="text-center p-3 rounded-xl bg-surface-muted">
+                <p className="stat-label text-[10px]">Value</p>
+                <p className="text-sm font-bold text-text-primary mt-1 tabular-nums">
+                  {formatUSD(profile?.totalValueUsd ?? 474810, true)}
+                </p>
+              </div>
+              <div className="text-center p-3 rounded-xl bg-surface-muted">
+                <p className="stat-label text-[10px]">APY</p>
+                <p className="text-sm font-bold text-brand-cyan mt-1 tabular-nums">
+                  {formatAPY(profile?.weightedApy ?? 5.52)}
+                </p>
+              </div>
+              <div className="text-center p-3 rounded-xl bg-surface-muted">
+                <p className="stat-label text-[10px]">Decisions</p>
+                <p className="text-sm font-bold text-brand-purple mt-1">
+                  {profile?.decisionsCount ?? 24}
+                </p>
+              </div>
+            </>
+          )}
         </div>
+
+        {/* On-chain decision count (only shown if contracts deployed) */}
+        {profile?.onChainDecisions !== undefined && profile.onChainDecisions > 0 && (
+          <div className="mt-3 flex items-center justify-between px-3 py-2 rounded-xl bg-brand-cyan/5 border border-brand-cyan/20">
+            <span className="text-xs text-text-secondary">On-chain decisions</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-brand-cyan">{profile.onChainDecisions}</span>
+              <a
+                href="https://explorer.testnet.mantle.xyz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-cyan/60 hover:text-brand-cyan transition-colors"
+              >
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   )

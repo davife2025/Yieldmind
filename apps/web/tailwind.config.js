@@ -51,9 +51,6 @@ module.exports = {
         "card-gradient":
           "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
       },
-      backgroundSize: {
-        grid: "40px 40px",
-      },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "fade-in":    "fadeIn 0.4s ease-out",

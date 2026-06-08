@@ -29,7 +29,7 @@ export async function GET(req: Request) {
     if (error) throw error
 
     return NextResponse.json({ decisions: data ?? [] })
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 })
   }
 }

@@ -9,9 +9,13 @@
     "NEXT_PUBLIC_CHAIN_ID",
     "BYBIT_API_KEY",
     "BYBIT_API_SECRET",
-    "ANTHROPIC_API_KEY",
+    "HUGGINGFACE_TOKEN",
     "AGENT_IDENTITY_CONTRACT_ADDRESS",
-    "DEPLOYER_PRIVATE_KEY"
+    "DECISION_LEDGER_CONTRACT_ADDRESS",
+    "DEPLOYER_PRIVATE_KEY",
+    "PORT",
+    "YIELDMIND_API_KEY",
+    "CORS_ORIGIN"
   ],
   "tasks": {
     "build": {
@@ -27,6 +31,11 @@
     },
     "type-check": {
       "dependsOn": ["^type-check"]
+    },
+    "start": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
     }
   }
 }

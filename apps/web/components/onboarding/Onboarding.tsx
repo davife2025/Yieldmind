@@ -18,7 +18,7 @@ const STEPS = [
     color: "text-brand-purple",
     bg: "bg-brand-purple/10",
     title: "Meet Your AI Agent",
-    subtitle: "Powered by Claude on Anthropic",
+    subtitle: "Powered by Kimi K2 on HuggingFace",
     body: "Your agent scans USDY, mETH, USDe, and fBTC positions every 30 minutes. Every decision comes with full AI reasoning — not a black box. You can approve, reject, or let it run autonomously.",
   },
   {
@@ -64,7 +64,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-base">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-100 pointer-events-none" />
+      <div className="absolute inset-0 bg-grid-pattern opacity-100 pointer-events-none" style={{ backgroundSize: "40px 40px" }} />
       <div className="absolute inset-0 bg-hero-gradient pointer-events-none" />
 
       <div className="relative w-full max-w-lg animate-fade-in">

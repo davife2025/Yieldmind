@@ -6,7 +6,7 @@ flowchart TD
         Alerts["Alerts\n/alerts"]
     end
 
-    subgraph API["⚡ API Routes — Next.js"]
+    subgraph API["⚡ API Routes — Next.js + Express"]
         R1["/api/agent/run"]
         R2["/api/agent/decisions"]
         R3["/api/agent/mint"]
@@ -19,7 +19,7 @@ flowchart TD
     subgraph Agent["🧠 AI Agent — @yieldmind/agent"]
         YieldScanner["Yield Scanner\nyieldScanner.ts"]
         RiskEngine["Risk Engine\nriskEngine.ts"]
-        Claude["Claude Reasoning\nreasoningEngine.ts"]
+        KimiK2["Kimi K2 Reasoning\nreasoningEngine.ts"]
         DecisionWriter["Decision Writer\ndecisionWriter.ts"]
         MantleWriter["Mantle Writer\nmantleWriter.ts"]
     end
@@ -40,7 +40,7 @@ flowchart TD
 
     subgraph External["🌐 External APIs"]
         Bybit["Bybit REST API\nPrice Feeds"]
-        Anthropic["Anthropic API\nClaude Sonnet 4"]
+        HuggingFace["HuggingFace Inference\nKimi-K2-Instruct"]
     end
 
     Dashboard -->|"React Query"| R5
@@ -58,7 +58,7 @@ flowchart TD
     YieldScanner -->|"snapshots"| Yields
     RiskEngine -->|"read positions"| Positions2
     RiskEngine -->|"write alerts"| RiskAlerts
-    Claude -->|"reasoning"| Anthropic
+    KimiK2 -->|"reasoning"| HuggingFace
     DecisionWriter -->|"write decisions"| Decisions
     MantleWriter -->|"mint NFT"| AgentNFT
     MantleWriter -->|"log decision"| Ledger

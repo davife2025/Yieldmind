@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { TrendingUp, DollarSign, Zap, Brain } from "lucide-react"
 import { formatUSD, formatAPY, formatPct } from "@yieldmind/shared"
-import { Card, Skeleton } from "@/components/ui"
+import { Card } from "@/components/ui"
 import { usePortfolioStats } from "@/hooks/usePortfolioStats"
 
 function AnimatedValue({ value, formatter }: { value: number; formatter: (v: number) => string }) {

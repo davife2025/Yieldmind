@@ -1,7 +1,7 @@
 import { createServerClient } from "@yieldmind/db"
 import { RISK_THRESHOLDS } from "@yieldmind/shared"
 import type { AssetId } from "@yieldmind/db"
-import { getAllAssetPrices, getFundingRateHistory } from "../bybit/client"
+import { getFundingRateHistory } from "../bybit/client"
 import type { RiskSignal } from "../types"
 
 // ─────────────────────────────────────────────────────────────
@@ -66,33 +66,40 @@ async function checkUSDeFundingRisk(): Promise<RiskSignal[]> {
 }
 
 // ── Stablecoin Depeg Check ─────────────────────────────────────────────────
+// Uses Bybit spot price for USDe. USDY is T-bill backed so treated as stable.
+// Only fires when price genuinely deviates beyond threshold.
 
 async function checkDepegRisk(): Promise<RiskSignal[]> {
   const signals: RiskSignal[] = []
-  const prices = await getAllAssetPrices()
 
-  // USDY should be ~$1 ± 0.5%
-  // USDe should be ~$1 ± 0.3%
-  // Note: In production, fetch actual spot prices for these
-  // For now, simulate with slight drift
-  const stablecoins: Array<{ id: AssetId; price: number; threshold: number }> = [
-    { id: "USDY", price: 1.0 + (Math.random() * 0.004 - 0.002), threshold: 0.005 },
-    { id: "USDe", price: 1.0 + (Math.random() * 0.004 - 0.002), threshold: 0.003 },
-  ]
+  // Try to fetch real USDe spot price from Bybit
+  // If unavailable, skip depeg check rather than simulate
+  try {
+    const { getSpotPrice } = await import("../bybit/client")
 
-  for (const { id, price, threshold } of stablecoins) {
-    const depeg = Math.abs(price - 1.0)
-    if (depeg > threshold) {
-      signals.push({
-        assetId: id,
-        type: "DEPEG",
-        severity: depeg > threshold * 2 ? "CRITICAL" : "HIGH",
-        value: price,
-        threshold: 1.0 + threshold,
-        message: `${id} trading at $${price.toFixed(4)}, deviating ${(depeg * 100).toFixed(3)}% from peg. Immediate review required.`,
-        detectedAt: new Date(),
-      })
+    // USDe has a spot pair on Bybit
+    const usdePrice = await getSpotPrice("USDEUSDT")
+
+    if (usdePrice !== null) {
+      const depeg = Math.abs(usdePrice - 1.0)
+      const threshold = 0.003 // 0.3%
+
+      if (depeg > threshold) {
+        signals.push({
+          assetId:   "USDe",
+          type:      "DEPEG",
+          severity:  depeg > threshold * 2 ? "CRITICAL" : "HIGH",
+          value:     usdePrice,
+          threshold: 1.0 + threshold,
+          message:   `USDe trading at $${usdePrice.toFixed(4)}, deviating ${(depeg * 100).toFixed(3)}% from peg. Immediate review required.`,
+          detectedAt: new Date(),
+        })
+      }
     }
+    // USDY omitted — T-bill NAV makes it inherently stable; no spot pair on testnet Bybit
+  } catch {
+    // Bybit unavailable — skip depeg check rather than emit false positives
+    console.log("[RiskEngine] Depeg check skipped — Bybit spot unavailable")
   }
 
   return signals
@@ -167,7 +174,7 @@ async function checkApyDropRisk(): Promise<RiskSignal[]> {
   return signals
 }
 
-// ── Store alerts in Supabase ───────────────────────────────────────────────
+// ── Store alerts in Supabase (with deduplication) ─────────────────────────
 
 export async function storeRiskAlerts(
   agentId: string,
@@ -176,19 +183,44 @@ export async function storeRiskAlerts(
   if (!signals.length) return
   const supabase = createServerClient()
 
+  // Deduplicate: skip signals where an identical unresolved alert
+  // already exists for the same agent + asset + type within the last hour
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+
+  const { data: existing } = await supabase
+    .from("risk_alerts")
+    .select("asset_id, title")
+    .eq("agent_id", agentId)
+    .eq("resolved", false)
+    .gte("created_at", oneHourAgo)
+
+  const existingKeys = new Set(
+    (existing ?? []).map(a => `${a.asset_id ?? "null"}::${a.title}`)
+  )
+
+  const newSignals = signals.filter(s => {
+    const key = `${s.assetId ?? "null"}::${getRiskTitle(s.type)}`
+    return !existingKeys.has(key)
+  })
+
+  if (!newSignals.length) {
+    console.log("[RiskEngine] All signals already alerted — skipping duplicates")
+    return
+  }
+
   const { error } = await supabase.from("risk_alerts").insert(
-    signals.map((s) => ({
+    newSignals.map((s) => ({
       agent_id: agentId,
       asset_id: s.assetId,
       severity: s.severity,
-      title: getRiskTitle(s.type),
-      message: s.message,
+      title:    getRiskTitle(s.type),
+      message:  s.message,
       resolved: false,
     }))
   )
 
   if (error) console.error("[RiskEngine] Failed to store alerts:", error.message)
-  else console.log(`[RiskEngine] Stored ${signals.length} risk alerts`)
+  else console.log(`[RiskEngine] Stored ${newSignals.length} new risk alerts (${signals.length - newSignals.length} deduplicated)`)
 }
 
 function getRiskTitle(type: RiskSignal["type"]): string {

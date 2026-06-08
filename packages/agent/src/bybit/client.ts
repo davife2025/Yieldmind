@@ -92,7 +92,7 @@ export async function getFundingRateHistory(
     const res = await client.get("/v5/market/funding/history", {
       params: { category: "linear", symbol, limit },
     })
-    return (res.data?.result?.list ?? []).map((item: any) => ({
+    return (res.data?.result?.list ?? []).map((item: Record<string, string>) => ({
       symbol: item.symbol,
       fundingRate: parseFloat(item.fundingRate),
       fundingRateTimestamp: parseInt(item.fundingRateTimestamp),

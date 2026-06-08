@@ -154,7 +154,7 @@ const POLL_INTERVAL_MS = 30 * 60 * 1000
 async function startAgentLoop() {
   console.log("🧠 YieldMind Agent starting...")
   console.log(`   Poll interval: ${POLL_INTERVAL_MS / 60000} minutes`)
-  console.log(`   Model: claude-sonnet-4-20250514`)
+  console.log(`   Model: moonshotai/Kimi-K2-Instruct`)
 
   // Run immediately on start
   await runAgent().catch((err) => console.error("[Agent] Run error:", err))

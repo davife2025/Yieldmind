@@ -1,3 +1,4 @@
+import type { RechartsTooltipProps, TooltipPayloadEntry } from "@/components/charts/tooltipTypes"
 "use client"
 
 import {
@@ -5,7 +6,7 @@ import {
   Tooltip, ResponsiveContainer,
 } from "recharts"
 import { formatUSD } from "@yieldmind/shared"
-import { Card, SectionHeader, LiveIndicator, Skeleton } from "@/components/ui"
+import { Card, SectionHeader, LiveIndicator } from "@/components/ui"
 import { TrendingUp } from "lucide-react"
 import { useState } from "react"
 
@@ -32,7 +33,7 @@ const RANGES = [
   { label: "30D", days: 30 },
 ]
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: RechartsTooltipProps) => {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-surface-overlay border border-surface-border rounded-xl p-3 text-xs shadow-xl">

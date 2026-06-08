@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { TrendingUp, TrendingDown, ExternalLink } from "lucide-react"
+import { TrendingUp, TrendingDown } from "lucide-react"
 import { formatUSD, formatAPY, formatPct } from "@yieldmind/shared"
 import { ASSETS } from "@yieldmind/shared"
 import { usePositions } from "@/hooks/usePositions"
@@ -23,7 +23,7 @@ interface PositionsTableProps {
 export function PositionsTable({ showFull = false }: PositionsTableProps) {
   const { data: positions, isLoading } = usePositions()
   const rows = positions ?? MOCK_POSITIONS
-  const display = showFull ? rows : rows
+  const display = showFull ? rows : rows.slice(0, 4)
 
   const [rebalanceAsset, setRebalanceAsset] = useState<string | null>(null)
 

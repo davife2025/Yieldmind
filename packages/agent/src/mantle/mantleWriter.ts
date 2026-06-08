@@ -47,7 +47,7 @@ export class MantleWriter {
     this.signer   = new ethers.Wallet(privateKey, this.provider)
 
     this.agentIdentity  = new ethers.Contract(agentIdentityAddress,  AGENT_IDENTITY_ABI,  this.signer)
-    this.decisionLedger = new ethers.Contract(decisionLedgerAddress, DECISION_LEDGER_ABI, this.signer)
+    this.decisionLedger = new ethers.Contract(decisionLedgerAddress!, DECISION_LEDGER_ABI, this.signer)
   }
 
   // ── Mint ERC-8004 Agent Identity NFT ────────────────────────────────────
@@ -66,7 +66,7 @@ export class MantleWriter {
     const receipt = await tx.wait()
 
     // Parse token ID from event
-    const event = receipt.logs.find((log: any) => {
+    const event = receipt.logs.find((log: { topics: string[]; data: string }) => {
       try {
         const parsed = this.agentIdentity.interface.parseLog(log)
         return parsed?.name === "AgentMinted"

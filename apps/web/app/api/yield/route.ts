@@ -35,7 +35,7 @@ export async function GET() {
       const d = new Date(s.timestamp)
       d.setMinutes(Math.floor(d.getMinutes() / 30) * 30, 0, 0)
       const key = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
-      if (!buckets[key]) buckets[key] = { time: key as any }
+      if (!buckets[key]) buckets[key] = { time: key }
       buckets[key][s.asset_id] = s.apy
     })
 

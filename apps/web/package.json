@@ -10,8 +10,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@yieldmind/db": "workspace:*",
+    "@yieldmind/db":     "workspace:*",
     "@yieldmind/shared": "workspace:*",
+    "@yieldmind/agent":  "workspace:*",
     "@supabase/supabase-js": "^2.43.0",
     "@supabase/ssr": "^0.4.0",
     "next": "^14.2.3",

@@ -19,7 +19,7 @@ const CONFIG_SECTIONS = [
     title: "AI Agent",
     icon: Cpu,
     items: [
-      { label: "Model",           value: "claude-sonnet-4-20250514", mono: true  },
+      { label: "Model",           value: "moonshotai/Kimi-K2-Instruct", mono: true  },
       { label: "Poll interval",   value: "30 minutes",               mono: false },
       { label: "Drift threshold", value: "2.5%",                     mono: false },
       { label: "Funding threshold", value: "0.025% (8h rate)",       mono: false },
@@ -31,7 +31,7 @@ const CONFIG_SECTIONS = [
     items: [
       { label: "Provider",    value: "Supabase Postgres",       mono: false },
       { label: "Realtime",    value: "Enabled · 4 tables",      mono: false },
-      { label: "Migrations",  value: "4 applied",               mono: false },
+      { label: "Migrations",  value: "5 applied",               mono: false },
       { label: "RLS",         value: "Enabled",                 mono: false },
     ],
   },

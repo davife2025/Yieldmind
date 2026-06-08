@@ -28,7 +28,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex flex-col flex-1 overflow-hidden">
               <TopBar />
               <main className="flex-1 overflow-y-auto bg-surface-base pb-16 md:pb-0">
-                <div className="fixed inset-0 bg-grid-pattern bg-grid opacity-100 pointer-events-none" aria-hidden="true" />
+                <div
+                  className="fixed inset-0 bg-grid-pattern opacity-100 pointer-events-none"
+                  style={{ backgroundSize: "40px 40px" }}
+                  aria-hidden="true"
+                />
                 <div className="fixed inset-0 bg-hero-gradient pointer-events-none" aria-hidden="true" />
                 <div className="relative z-10 p-4 md:p-6">
                   {children}
